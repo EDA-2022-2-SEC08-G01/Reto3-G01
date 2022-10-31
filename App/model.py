@@ -208,7 +208,7 @@ def indexHeight(analyzer):
 
 
 def indexSize(analyzer):
-    """
+    """o
     Numero de elementos en el indice
     """
     return om.size(analyzer['Req1_FivePlatformGames'])
@@ -243,3 +243,4 @@ def Dates(string):
 
     return dt.strptime(fecha, "%Y-%m-%d").date()
 
+# def calcularvalorreq7()
