@@ -25,6 +25,7 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from datetime import datetime as dt
 assert cf
 
 
@@ -34,28 +35,29 @@ Presenta el menu de opciones y por cada seleccion
 se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
-#category_file = 
-def printTiempo_Memoria(tiempo, memoria): 
-    mensaje = "****  Tiempo [ms]: {0} | Memoria [kb]: {1}  ****".format(round(tiempo,2), round(memoria,2))
-    print(mensaje)
 
 
-def printHeightN(height, n_elements):
-    print("====="*20)
-    print('La altura del árbol del club es: {0} y tiene {1} elementos'.format(height, n_elements))
+# ___________________________________________________
+# Menu Principal
+# ___________________________________________________
 
 def printMenu():
     print("====="*20)
     print("          >>               Bienvenido                    <<     ")
     print("  [R0]   q- Cargar información en el catálogo.")
-    print("  [R1]   1- Reportar las cinco adquisiciones más recientes de un club.")
-    print("  [R2]   2- Reportar los games de cierta posición dentro de un rango de desempeño, potencial y salario.")
-    print("  [R3]   3- Reportar los games dentro de un rango salarial y con cierta etiqueta.")
-    print("  [R4]   4- Reportar los games con cierto rasgo característico y nacidos en un periodo de tiempo. ")
-    print("  [R5]   5- Graficar el histograma de una propiedad para los games FIFA.")
-    print("  [R6]   6- Encontrar posibles sustituciones para los games FIFA")
+    print("  [R1]   1- Encontrar los videojuegos publicados para un rango de tiempo dada plataforma.")
+    print("  [R2]   2- Encontrar los 5 registros con menor tiempo para un jugador en específico.")
+    print("  [R3]   3- Conocer los registros más veloces en un rango de intentos.")
+    print("  [R4]   4- Conocer los registros más lentos dentro de un rango de fechas. ")
+    print("  [R5]   5- Conocer los registros más recientes para un rango de tiempos record.")
+    print("  [R6]   6- Diagramar un histograma de propiedades para los registros de un rango de años.")
+    print("  [R7]   6- Encontrar el TOP N de los videojuegos más rentables para retransmitir.")
     print("         0- Salir")
     print("====="*20)
+
+# ___________________________________________________
+# Impresion Carga de Datos
+# ___________________________________________________
 
 def printGamesAndRecords(analyzer):
     num_games = lt.size(analyzer["games_data"])
@@ -91,13 +93,15 @@ def printGamesAndRecords(analyzer):
         )
         if pos_games == 3:
                 print(">>>   Últimos 3 games cargados...   >>>")
+    
+    print("_____"*20)
+    print("\n")
 
     print(">>>   Primeros 3 records cargados...   >>>")
     for pos_record in pos_for_prints_records:
         records = lt.getElement(analyzer["category_data"], pos_record)
-        if int(records['Num_Runs']) == 0:
-            pass
-        else:
+        if int(records['Num_Runs']) != 0:
+        
             print(
                 "\033[1m" +
                 "Nombre: " + 
@@ -113,7 +117,7 @@ def printGamesAndRecords(analyzer):
 
                 "\n      nombre jugador mejor tiempo: " +
                 str(records["Players_0"]) + 
-                " "*(40 - len(str(records['Players_0'])) -9)+ "tiempo record: " +  
+                " "*(40 - len(str(records['Players_0'])) -9)+ "tiempo del jugador: " +  
                 str(records["Time_0"]) + 
 
                 "\n   Fecha del record: " + 
@@ -125,15 +129,207 @@ def printGamesAndRecords(analyzer):
             if pos_record == 3:
                         print(">>>   Últimos 3 records cargados...   >>>")
 
+# ___________________________________________________
+# Prints por requerimiento
+# ___________________________________________________
+
+def printR1(sorted_list, platform, min_date, max_date):
+    size = lt.size(sorted_list)
+    print("====="*20)
+    print('la plataforma {0} tiene un total de {1} videojuegos'.format(platform, size))
+    print('Released games between dates'.format(size))
+    print("====="*20)
+    if size is None:
+        print('Busque con una plataforma válida')
+    else:
+        if size < 6:
+            out_n = size
+        else:
+            out_n = 6
+        print('Los últimos {0} videojuegos son...'.format(out_n))
+        for game in lt.iterator(sorted_list):
+
+            print(
+                "Nombre del videojuego: " + 
+                str(game["Name"]) + 
+                ",\n      Abreviacion del nombre: " + 
+                str(game["Abbreviation"]) + 
+                ",\n      Genero del videojuego: " + 
+                str(game["Genres"]) + 
+                ",\n      Plataformas: " +
+                str(game["Platforms"]) + 
+                ",\n      Intentos de speedruns: " + 
+                str(game["Total_Runs"]) + 
+                ",\n      Año de publicacion: " + 
+                str(game["Release_Date"]) +  
+                "\n"
+            )
+
+
+def printR2(n, records_list, player):
+    print("====="*20)
+    print('la plataforma {0} tiene un total de {1} videojuegos'.format(player, n))
+    print("====="*20)
+    if n is None:
+        print('Busque con un nombre válido')
+    else:
+        if n_records < 5:
+            out_n = n
+        else:
+            out_n = 5
+        print('Los records {0} son...'.format(out_n))
+        for record in lt.iterator(records_list):
+
+            print(
+                "Nombre del videojuego: " + 
+                str(record["Game_Id"]) + 
+                ",\n      Categoria: " + 
+                str(record["Category"]) + 
+                ",\n      Subcategoria: " + 
+                str(record["Subcategory"]) + 
+                ",\n      Intentos de speedruns: " +
+                str(record["Num_Runs"]) + 
+                ",\n      Nombre del jugador: " + 
+                str(record["Players_0"]) + 
+                ",\n      Nacionalidad del jugador: " + 
+                str(record["Country_0"]) +  
+                ",\n      Tiempo del jugador: " + 
+                str(record["Time_0"]) +
+                ",\n      Fecha del record: " + 
+                str(record["Record_Date_0"]) +
+                "\n"
+            )
+
+
+def printR3(sorted_list, min_runs, max_runs):
+    size = lt.size(sorted_list)
+    print("====="*20)
+    print('Hay un total de {0} intentos de speedruns entre {1} intentos y {2} intentos'.format(size, min_runs, max_runs))
+    print("====="*20)
+    if size is None:
+        print('Busque con una plataforma válida')
+    else:
+        if size < 6:
+            out_n = size
+        else:
+            out_n = 6
+        print('Los records {0} son...'.format(out_n))
+        for record in lt.iterator(sorted_list):
+
+            print(
+                "Nombre del videojuego: " + 
+                str(record["Game_Id"]) + 
+                ",\n      Categoria: " + 
+                str(record["Category"]) + 
+                ",\n      Subcategoria: " + 
+                str(record["Subcategory"]) + 
+                ",\n      Intentos de speedruns: " +
+                str(record["Num_Runs"]) + 
+                ",\n      Nombre del jugador: " + 
+                str(record["Players_0"]) + 
+                ",\n      Nacionalidad del jugador: " + 
+                str(record["Country_0"]) +  
+                ",\n      Tiempo del jugador: " + 
+                str(record["Time_0"]) +
+                ",\n      Fecha del record: " + 
+                str(record["Record_Date_0"]) +
+                "\n"
+            )
+
+
+def printR4(sorted_list, min_date, max_date):
+    size = lt.size(sorted_list)
+    print("====="*20)
+    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(size, min_date, max_date))
+    print("====="*20)
+    if size is None:
+        print('Busque con una plataforma válida')
+    else:
+        if size < 6:
+            out_n = size
+        else:
+            out_n = 6
+        print('Los últimos {0} records son...'.format(out_n))
+        for record in lt.iterator(sorted_list):
+
+            print(
+                "Nombre del videojuego: " + 
+                str(record["Game_Id"]) + 
+                ",\n      Categoria: " + 
+                str(record["Category"]) + 
+                ",\n      Subcategoria: " + 
+                str(record["Subcategory"]) + 
+                ",\n      Intentos de speedruns: " +
+                str(record["Num_Runs"]) + 
+                ",\n      Nombre del jugador: " + 
+                str(record["Players_0"]) + 
+                ",\n      Nacionalidad del jugador: " + 
+                str(record["Country_0"]) +  
+                ",\n      Tiempo del jugador: " + 
+                str(record["Time_0"]) +
+                ",\n      Fecha del record: " + 
+                str(record["Record_Date_0"]) +
+                "\n"
+            )
+
+
+def printR5(sorted_list, min_time, max_time):
+    size = lt.size(sorted_list)
+    print("====="*20)
+    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(size, min_time, max_time))
+    print("====="*20)
+    if size is None:
+        print('Busque con una plataforma válida')
+    else:
+        if size < 6:
+            out_n = size
+        else:
+            out_n = 6
+        print('Los últimos {0} records son...'.format(out_n))
+        for record in lt.iterator(sorted_list):
+
+            print(
+                "Nombre del videojuego: " + 
+                str(record["Game_Id"]) + 
+                ",\n      Categoria: " + 
+                str(record["Category"]) + 
+                ",\n      Subcategoria: " + 
+                str(record["Subcategory"]) + 
+                ",\n      Intentos de speedruns: " +
+                str(record["Num_Runs"]) + 
+                ",\n      Nombre del jugador: " + 
+                str(record["Players_0"]) + 
+                ",\n      Nacionalidad del jugador: " + 
+                str(record["Country_0"]) +  
+                ",\n      Tiempo del jugador: " + 
+                str(record["Time_0"]) +
+                ",\n      Fecha del record: " + 
+                str(record["Record_Date_0"]) +
+                "\n"
+            )
 
     
+# ___________________________________________________
+# Funciones adicionales y Lab 9
+# ___________________________________________________
+
+def printHeightN(height, n_elements):
+    print("====="*20)
+    print('La altura del árbol de los record y juegos es: {0} y tiene {1} elementos'.format(height, n_elements))
+
+def printTimeMemory(Time, memoria): 
+    mensaje = "****  Time [ms]: {0} | Memoria [kb]: {1}  ****".format(round(Time,2), round(memoria,2))
+    print(mensaje)
+
+def realDate(string): 
+    return dt.strptime(string, "%Y-%m-%d").date()
 
 analyzer = None
 
+# ___________________________________________________
+# Menu Principal
+# ___________________________________________________
 
-"""
-Menú principal
-"""
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar: ')
@@ -145,23 +341,54 @@ while True:
         time, memory = controller.load_data(analyzer)   
 
         printGamesAndRecords(analyzer)
-        printTiempo_Memoria(time, memory)    
+
+        printTimeMemory(time, memory)    
+    
     
     elif inputs == "1":
-        platform = input("Ingrese una plataforma: ")
-        min_date = input("Ingrese límite inferior de fecha de lanzamiento: ")
-        max_date = input("Ingrese límite inferior de fecha de lanzamiento: ")
+        platform = input('Nombre de la plataforma: ')
+        min_date = realDate(input("Ingrese el límite inferior de fecha de lanzamiento: "))
+        max_date = realDate(input("Ingrese el Límite superior de fecha de lanzamiento: "))
 
-        time, memory, list_games, num_games, height, n_elements = controller.CallReq1(analyzer, platform, min_date, max_date)
+        sorted_list, time, memory = controller.Call_Req1(analyzer, platform, min_date, max_date)
 
-        if time == None:
-            print("No se pudo realizar la operacion")
-        else: 
-            printR1(list_games, num_games)
-            printTiempo_Memoria(time, memory)
-            printHeightN(height, n_elements)
-            
+        printR1(sorted_list, platform, min_date, max_date)
+        printTimeMemory(time, memory)
 
+    elif inputs == "2":
+        player = input('Ingrese el nombre del jugador: ')
+
+        records_list, n_records, time, memory = controller.Call_Req2(analyzer, player)
+
+        printR2(n_records, records_list, player)
+        printTimeMemory(time, memory)
+    
+    elif inputs == "3":
+        min_attempts = int(input('ingrese el límite inferior de intentos: '))
+        max_attempts = int(input('ingrese el límite superior  de intentos: '))
+
+        sorted_list, time, memory = controller.Call_Req3(analyzer, min_attempts, max_attempts)
+
+        printR3(sorted_list, min_attempts, max_attempts)
+        printTimeMemory(time, memory)
+
+    elif inputs == "4":
+        min_date_4 = input('ingrese el límite inferior de la fecha: ')
+        max_date_4 = input('Ingrese el límite superior de la fecha: ')
+
+        sorted_list, time, memory = controller.Call_Req4(analyzer, min_date_4, max_date_4)
+
+        printR4(sorted_list, min_date_4, max_date_4)
+        printTimeMemory(time, memory)
+
+    elif inputs == "5":
+        min_time = float(input('ingrese la duración mínima: '))
+        max_time = float(input('ingrese la duración máxima: '))
+
+        sorted_list, time, memory = controller.Call_Req5(analyzer, min_time, max_time)
+
+        printR5(sorted_list, min_time, max_time)
+        printTimeMemory(time, memory)
 
     else:
         sys.exit(0)
