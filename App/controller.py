@@ -35,24 +35,26 @@ El controlador se encarga de mediar entre la vista y el modelo.
 size = "small" 
 
 # ___________________________________________________
-# Inicialización del Catálogo de videojuegos
+# Inicialización del Catálogo de jugadores
 # ___________________________________________________
-
 
 def init():
     """
     Llama la funcion de inicializacion  del modelo.
     """
     # catalog es utilizado para interactuar con el modelo
-    analyzer = model.newAnalyzer()
+    analyzer = model.new_analyzer()
     return analyzer
 
-# ___________________________________________________
+# ===================================================
 #  Funciones para la carga de datos y almacenamiento
 #  de datos en los modelos
-# ___________________________________________________
+# ===================================================
 
 def load_data(analyzer):
+    """
+    Carga los datos de los archivos CSV en el modelo
+    """
 
     tracemalloc.start()
 
@@ -78,35 +80,20 @@ def load_data(analyzer):
     memory = deltaMemory(stop_memory, start_memory)
     return time, memory
 
-def loadGames(analyzer):
+#====================================================
+#  Funciones de cada requerimiento
+#====================================================
 
-    gamesfile = cf.data_dir + 'game_data_utf8-{0}.csv'.format(size)
-    input_file = csv.DictReader(open(gamesfile, encoding='utf-8'))
-    for game in input_file:
-        model.add_game(analyzer, game)
-    return lt.size(analyzer["games_data"])
+def Call_Req1(analyzer, platform, min_date, max_date):
 
-def loadRecords(analyzer):
-    
-    Recordsfile = cf.data_dir + 'category_data_utf8-{0}.csv'.format(size)
-    input_file = csv.DictReader(open(Recordsfile, encoding='utf-8'))
-    for record in input_file:
-        model.add_record(analyzer, record)
-    return lt.size(analyzer["category_data"])
-
-
-# ___________________________________________________
-# Requerimientos
-# ___________________________________________________
-
-
-def CallReq1(analyzer, platform, min_date, max_date): 
     tracemalloc.start()
 
     start_time = getTime()
     start_memory = getMemory()
 
-    list_games, num_games, height, n_elements= model.R1_FiveGamesbyPlatform(analyzer, platform, min_date, max_date)
+
+    sorted_list = model.Req1_VideogamesByRangeDate(analyzer, platform, min_date, max_date)
+
 
     stop_memory = getMemory()
     stop_time = getTime()
@@ -116,24 +103,100 @@ def CallReq1(analyzer, platform, min_date, max_date):
     time = deltaTime(stop_time, start_time)
     memory = deltaMemory(stop_memory, start_memory)
 
-    if list_games == None:
-        return None, None, None, None
 
-    return time, memory, list_games, num_games, height, n_elements
+    return (sorted_list, time, memory)
+
+def Call_Req2(analyzer, player):
+
+    tracemalloc.start()
+
+    start_time = getTime()
+    start_memory = getMemory()
 
 
-# Inicialización del Catálogo de libros
+    records_list, n_records = model.R2_player_records(analyzer, player)
 
-# Funciones para la carga de datos
 
-# Funciones de ordenamiento
+    stop_memory = getMemory()
+    stop_time = getTime()
+  
+    tracemalloc.stop()
 
-# Funciones de consulta sobre el catálogo
+    time = deltaTime(stop_time, start_time)
+    memory = deltaMemory(stop_memory, start_memory)
+
+
+    return (records_list, n_records, time, memory)
+
+def Call_Req3(analyzer, min_runs, max_runs):
+
+    tracemalloc.start()
+
+    start_time = getTime()
+    start_memory = getMemory()
+
+
+    sorted_list = model.Req3_FastestRegistersByAttempts(analyzer, min_runs, max_runs)
+
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+  
+    tracemalloc.stop()
+
+    time = deltaTime(stop_time, start_time)
+    memory = deltaMemory(stop_memory, start_memory)
+
+
+    return (sorted_list, time, memory)
+
+def Call_Req4(analyzer, min_date, max_date):
+
+    tracemalloc.start()
+
+    start_time = getTime()
+    start_memory = getMemory()
+
+
+    sorted_list = model.Req4_SlowRegistersbyDates(analyzer, min_date, max_date)
+
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+  
+    tracemalloc.stop()
+
+    time = deltaTime(stop_time, start_time)
+    memory = deltaMemory(stop_memory, start_memory)
+
+
+    return (sorted_list, time, memory)
+
+def Call_Req5(analyzer, min_time, max_time):
+
+    tracemalloc.start()
+
+    start_time = getTime()
+    start_memory = getMemory()
+
+
+    sorted_list = model.Req5_RecentRegistersRecord(analyzer, min_time, max_time)
+
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+  
+    tracemalloc.stop()
+
+    time = deltaTime(stop_time, start_time)
+    memory = deltaMemory(stop_memory, start_memory)
+
+
+    return (sorted_list, time, memory)
 
 # ___________________________________________________
-# Funciones para medir el tiempo utilizado
+# Funciones para la toma de tiempos
 # ___________________________________________________
-
 
 def getTime():
     """
@@ -148,12 +211,9 @@ def deltaTime(end, start):
     elapsed = float(end - start)
     return elapsed
 
-
-
+# _____________________________________________
+# Funciones para la toma de memoria
 # ___________________________________________________
-# Funciones para medir la memoria utilizada
-# ___________________________________________________
-
 
 def getMemory():
     """
