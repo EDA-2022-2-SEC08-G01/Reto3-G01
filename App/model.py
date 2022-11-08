@@ -62,19 +62,6 @@ def new_analyzer():
     }
 
     #================[Listas Generales]=====================
-<<<<<<< HEAD
-    analyzer["category_data"]    = lt.newList("ARRAY_LIST")
-    analyzer["games_data"]    = lt.newList("ARRAY_LIST")
-
-     #=================[R1]=================
-    analyzer['Req1_FivePlatformGames'] = mp.newMap(numelements=100000,
-                                      maptype='PROBING', 
-                                      loadfactor=loadfactor)
-
-    
-                                    
-    return analyzer 
-=======
     analyzer["category_data"] = lt.newList("ARRAY_LIST")
     analyzer["games_data"] = lt.newList("ARRAY_LIST")
 
@@ -85,7 +72,6 @@ def new_analyzer():
     analyzer['Req3_FastestRegistersByAttempts'] = om.newMap(omaptype="RBT")
 
     analyzer["Req4_SlowRegistersbyDates"] = om.newMap(omaptype="RBT")
->>>>>>> 29dd2baab3f52a6647c682f10f501b87ba2e62cf
 
     analyzer['Req5_RecentRegistersRecord']   = om.newMap(omaptype="RBT")
      
@@ -99,16 +85,11 @@ def new_analyzer():
     return analyzer 
 
 
-<<<<<<< HEAD
-
-
-=======
 # ___________________________________________________
 # Funciones para agregar informacion al analyzer
 # __________________________________________________
 
     #================[Añadido de archivo game]=====================
->>>>>>> 29dd2baab3f52a6647c682f10f501b87ba2e62cf
 def add_game(analyzer, game):
     #Carga a estructuras de datos para cada requerimiento
     R1_carga(analyzer, game)
@@ -401,14 +382,10 @@ def cmp_Req5(record1, record2):
 # Funciones Adicionales
 # ___________________________________________________
 
-<<<<<<< HEAD
 
 
 def Dates(string): 
     "Transforma el formato en el que está la fecha en el CSV"
-=======
-def CompleteDate(string): 
->>>>>>> 29dd2baab3f52a6647c682f10f501b87ba2e62cf
     if int(string[:2]) <= 22:
         año = "20" + string[:2]
         fecha = año + string[2:]
@@ -419,43 +396,6 @@ def CompleteDate(string):
     return dt.strptime(fecha, "%Y-%m-%d").date()
 
 
-<<<<<<< HEAD
 
 
-=======
-def realDate(string): 
-    return dt.strptime(string, "%Y-%m-%d").date()
-    
-def FirstandLast(lista):
-    sizelista = lt.size(lista)
-    if sizelista <=6:
-        df = (lista)
-        return df
-    first_3 = subList(lista,1, 3)
-    last_3 = subList(lista,sizelista-3, 3)
-    listafinal = lt.newList("ARRAY_LIST")
-    for i in lt.iterator(first_3):
-        lt.addLast(listafinal, i) 
-    for a in lt.iterator(last_3):
-        lt.addLast(listafinal, a)
-    df=(listafinal)
-    return df
-
-# ___________________________________________________
-# Funciones Lab 9
-# ___________________________________________________
-
-def indexHeight(analyzer):
-    """
-    Altura del árbol
-    """
-    return om.height(analyzer)
-
-
-def indexSize(analyzer):
-    """
-    Número de elementos en el indice
-    """
-    return treeSize(analyzer)
->>>>>>> 29dd2baab3f52a6647c682f10f501b87ba2e62cf
 
