@@ -36,7 +36,6 @@ from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
 assert cf
 from datetime import datetime as dt
-import math as ma
 
 """
 Se define la estructura de un catálogo de videojuegos.
@@ -90,14 +89,32 @@ def new_analyzer():
 # __________________________________________________
 
     #================[Añadido de archivo game]=====================
-def add_game(analyzer, game):
+def AddGameData(analyzer, game):
     #Carga a estructuras de datos para cada requerimiento
+
     R1_carga(analyzer, game)
-    #Agregar a la lista general de games
+
+    #Agregar a la lista general de games, en este caso para el R1.
+
     lt.addLast(analyzer["games_data"], game)
 
     #================[Añadido de archivo category]=====================
-def add_record(analyzer, record):
+"""
+def NameById(analyzer, record):
+    data = analyzer["games_data"]
+    name_by_Id = mp.newMap(numelements=100000,
+                        prime=109345121,
+                        maptype='PROBING', 
+                        loadfactor=0.5,
+                        comparefunction=None)
+    for game in lt.iterator(data):
+        if game["Game_Id"] == record["Game_Id"]:
+            name_by_Id.put(data, record["Game_Id"],game["Name"])
+    return name_by_Id
+
+"""
+def AddRecordData(analyzer, record):
+ 
     for game in lt.iterator(analyzer["games_data"]):
         if game["Game_Id"] == record["Game_Id"]:
             record["Game_Id"] = game["Name"]
@@ -382,10 +399,7 @@ def cmp_Req5(record1, record2):
 # Funciones Adicionales
 # ___________________________________________________
 
-
-
-def Dates(string): 
-    "Transforma el formato en el que está la fecha en el CSV"
+def CompleteDate(string): 
     if int(string[:2]) <= 22:
         año = "20" + string[:2]
         fecha = año + string[2:]
@@ -396,6 +410,38 @@ def Dates(string):
     return dt.strptime(fecha, "%Y-%m-%d").date()
 
 
+def realDate(string): 
+    return dt.strptime(string, "%Y-%m-%d").date()
+    
+def FirstandLast(lista):
+    sizelista = lt.size(lista)
+    if sizelista <=6:
+        df = (lista)
+        return df
+    first_3 = subList(lista,1, 3)
+    last_3 = subList(lista,sizelista-3, 3)
+    listafinal = lt.newList("ARRAY_LIST")
+    for i in lt.iterator(first_3):
+        lt.addLast(listafinal, i) 
+    for a in lt.iterator(last_3):
+        lt.addLast(listafinal, a)
+    df=(listafinal)
+    return df
+
+# ___________________________________________________
+# Funciones Lab 9
+# ___________________________________________________
+
+def indexHeight(analyzer):
+    """
+    Altura del árbol
+    """
+    return om.height(analyzer)
 
 
+def indexSize(analyzer):
+    """
+    Número de elementos en el indice
+    """
+    return treeSize(analyzer)
 
