@@ -35,6 +35,7 @@ from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
 assert cf
 from datetime import datetime as dt
+import math as ma
 
 
 # Construccion de modelos
@@ -61,6 +62,8 @@ def newAnalyzer():
     analyzer['Req1_FivePlatformGames'] = mp.newMap(numelements=100000,
                                       maptype='PROBING', 
                                       loadfactor=loadfactor)
+
+    
                                     
     return analyzer 
 
@@ -68,6 +71,8 @@ def newAnalyzer():
 """Funciones para agregar informacion al analyzer"""
 
     #[Añadido de archivo game_data]
+
+
 
 def add_game(analyzer, game):
     #Carga a estructuras de datos para cada requerimiento
@@ -232,6 +237,7 @@ def maxKey(analyzer):
 # ___________________________________________________
 
 
+
 def Dates(string): 
     "Transforma el formato en el que está la fecha en el CSV"
     if int(string[:2]) <= 22:
@@ -243,4 +249,7 @@ def Dates(string):
 
     return dt.strptime(fecha, "%Y-%m-%d").date()
 
-# def calcularvalorreq7()
+
+
+
+
