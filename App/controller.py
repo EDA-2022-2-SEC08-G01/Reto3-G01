@@ -20,7 +20,6 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
-
 import config as cf
 import model
 import csv
@@ -64,12 +63,12 @@ def load_data(analyzer):
     gamesfile = cf.data_dir + '/Speedruns/game_data_utf-8-{0}.csv'.format(size)
     input_file = csv.DictReader(open(gamesfile, encoding='utf-8'), delimiter=",")
     for game in input_file:
-        model.add_game(analyzer, game)
+        model.AddGameData(analyzer, game)
         
     Recordsfile = cf.data_dir +  '/Speedruns/category_data_urf-8-{0}.csv'.format(size)
     input_file = csv.DictReader(open(Recordsfile, encoding='utf-8'), delimiter=",")
     for record in input_file:
-        model.add_record(analyzer, record)
+        model.AddRecordData(analyzer, record)
     
     stop_memory = getMemory()
     stop_time = getTime()
