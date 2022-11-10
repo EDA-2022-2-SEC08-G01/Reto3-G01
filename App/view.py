@@ -35,33 +35,52 @@ Presenta el menu de opciones y por cada seleccion
 se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
+#================[Funciones Adicionales]=====================
 
+def str_to_date_2(string): 
+    return dt.strptime(string, "%Y-%m-%d").date()
 
-# ___________________________________________________
-# Menu Principal
-# ___________________________________________________
+def getFirtLastN(lista, N):
+    FirstLast =  lt.newList(datastructure = "ARRAY_LIST")
+    size = lt.size(lista)
+    for i in range(1,N+1):
+        lt.addLast(FirstLast, lt.getElement(lista, i))
+    for i in range(size-(N-1),size+1):
+        lt.addLast(FirstLast, lt.getElement(lista, i))
+    return FirstLast
+
+#================[Impresion de datos de tiempo y memoria]=====================
+
+def printTiempo_Memoria(tiempo, memoria): 
+    mensaje = "****  Tiempo [ms]: {0} | Memoria [kb]: {1}  ****".format(round(tiempo,2), round(memoria,2))
+    print(mensaje)
+
+#================[Impresion de la altura del arbol y su numero de elementos (lab #9)]=====================
+
+def printHeightN(height, n_elements):
+    print("====="*20)
+    print('La altura del árbol de los record y juegos es: {0} y tiene {1} elementos'.format(height, n_elements))
+
+#================[Menu principal]=====================
 
 def printMenu():
     print("====="*20)
     print("          >>               Bienvenido                    <<     ")
     print("  [R0]   q- Cargar información en el catálogo.")
-    print("  [R1]   1- Encontrar los videojuegos publicados para un rango de tiempo dada plataforma.")
-    print("  [R2]   2- Encontrar los 5 registros con menor tiempo para un jugador en específico.")
-    print("  [R3]   3- Conocer los registros más veloces en un rango de intentos.")
-    print("  [R4]   4- Conocer los registros más lentos dentro de un rango de fechas. ")
-    print("  [R5]   5- Conocer los registros más recientes para un rango de tiempos record.")
-    print("  [R6]   6- Diagramar un histograma de propiedades para los registros de un rango de años.")
-    print("  [R7]   6- Encontrar el TOP N de los videojuegos más rentables para retransmitir.")
+    print("  [R1]   1- Reportar las cinco videojuegos lanzados recientemente.")
+    print("  [R2]   2- Reportar los games de cierta posición dentro de un rango de desempeño, potencial y salario.")
+    print("  [R3]   3- Reportar los games dentro de un rango salarial y con cierta etiqueta.")
+    print("  [R4]   4- Reportar los games con cierto rasgo característico y nacidos en un periodo de tiempo. ")
+    print("  [R5]   5- Graficar el histograma de una propiedad para los games FIFA.")
+    print("  [R6]   6- Encontrar posibles sustituciones para los games FIFA")
     print("         0- Salir")
     print("====="*20)
 
-# ___________________________________________________
-# Impresion Carga de Datos
-# ___________________________________________________
+#================[Impresion de la carga de datos]=====================
 
-def printGamesAndRecords(analyzer):
-    num_games = lt.size(analyzer["games_data"])
-    num_records = lt.size(analyzer["category_data"])
+def printGamesAndRecords(catalog):
+    num_games = lt.size(catalog["games_data"])
+    num_records = lt.size(catalog["category_data"])
     pos_for_prints_games = [1,2,3,num_games-2,num_games-1, num_games]
     pos_for_prints_records = [1,2,3,num_records-2,num_records-1, num_records]
     
@@ -71,7 +90,7 @@ def printGamesAndRecords(analyzer):
 
     print(">>>   Primeros 3 games cargados...   >>>")
     for pos_games in pos_for_prints_games:
-        games = lt.getElement(analyzer["games_data"], pos_games)
+        games = lt.getElement(catalog["games_data"], pos_games)
         print(
             "\033[1m" +
             "Nombre: " + 
@@ -93,13 +112,10 @@ def printGamesAndRecords(analyzer):
         )
         if pos_games == 3:
                 print(">>>   Últimos 3 games cargados...   >>>")
-    
-    print("_____"*20)
-    print("\n")
 
     print(">>>   Primeros 3 records cargados...   >>>")
     for pos_record in pos_for_prints_records:
-        records = lt.getElement(analyzer["category_data"], pos_record)
+        records = lt.getElement(catalog["category_data"], pos_record)
         if int(records['Num_Runs']) != 0:
         
             print(
@@ -129,23 +145,19 @@ def printGamesAndRecords(analyzer):
             if pos_record == 3:
                         print(">>>   Últimos 3 records cargados...   >>>")
 
-# ___________________________________________________
-# Prints por requerimiento
-# ___________________________________________________
+#================[Impresion del requerimiento #1]=====================
 
-def printR1(sorted_list, platform, min_date, max_date):
-    size = lt.size(sorted_list)
+def printR1(sorted_list, sizelista, platform, min_date, max_date):
     print("====="*20)
-    print('la plataforma {0} tiene un total de {1} videojuegos'.format(platform, size))
-    print('Released games between dates'.format(size))
+    print('la plataforma {0} tiene un total de {1} videojuegos'.format(platform, sizelista))
     print("====="*20)
-    if size is None:
+    if sizelista is None:
         print('Busque con una plataforma válida')
     else:
-        if size < 6:
-            out_n = size
+        if sizelista < 5:
+            out_n = sizelista
         else:
-            out_n = 6
+            out_n = 5
         print('Los últimos {0} videojuegos son...'.format(out_n))
         for game in lt.iterator(sorted_list):
 
@@ -165,16 +177,17 @@ def printR1(sorted_list, platform, min_date, max_date):
                 "\n"
             )
 
+#================[Impresion del requerimiento #2]=====================
 
-def printR2(n, records_list, player):
+def printR2(n_records, records_list, player):
     print("====="*20)
-    print('la plataforma {0} tiene un total de {1} videojuegos'.format(player, n))
+    print('la plataforma {0} tiene un total de {1} videojuegos'.format(player, n_records))
     print("====="*20)
-    if n is None:
+    if n_records is None:
         print('Busque con un nombre válido')
     else:
         if n_records < 5:
-            out_n = n
+            out_n = n_records
         else:
             out_n = 5
         print('Los records {0} son...'.format(out_n))
@@ -200,17 +213,17 @@ def printR2(n, records_list, player):
                 "\n"
             )
 
+#================[Impresion del requerimiento #3]=====================
 
-def printR3(sorted_list, min_runs, max_runs):
-    size = lt.size(sorted_list)
+def printR3(sorted_list, sizelista, min_runs, max_runs):
     print("====="*20)
-    print('Hay un total de {0} intentos de speedruns entre {1} intentos y {2} intentos'.format(size, min_runs, max_runs))
+    print('Hay un total de {0} intentos de speedruns entre {1} intentos y {2} intentos'.format(sizelista, min_runs, max_runs))
     print("====="*20)
-    if size is None:
+    if sizelista is None:
         print('Busque con una plataforma válida')
     else:
-        if size < 6:
-            out_n = size
+        if sizelista < 6:
+            out_n = sizelista
         else:
             out_n = 6
         print('Los records {0} son...'.format(out_n))
@@ -236,17 +249,17 @@ def printR3(sorted_list, min_runs, max_runs):
                 "\n"
             )
 
+#================[Impresion del requerimiento #4]=====================
 
-def printR4(sorted_list, min_date, max_date):
-    size = lt.size(sorted_list)
+def printR4(sorted_list, sizelista, min_date, max_date):
     print("====="*20)
-    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(size, min_date, max_date))
+    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(sizelista, min_date, max_date))
     print("====="*20)
-    if size is None:
+    if sizelista is None:
         print('Busque con una plataforma válida')
     else:
-        if size < 6:
-            out_n = size
+        if sizelista < 6:
+            out_n = sizelista
         else:
             out_n = 6
         print('Los últimos {0} records son...'.format(out_n))
@@ -272,17 +285,17 @@ def printR4(sorted_list, min_date, max_date):
                 "\n"
             )
 
+#================[Impresion del requerimiento #5]=====================
 
-def printR5(sorted_list, min_time, max_time):
-    size = lt.size(sorted_list)
+def printR5(sorted_list, sizelista, min_time, max_time):
     print("====="*20)
-    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(size, min_time, max_time))
+    print('Hay un total de {0} intentos de speedruns entre {1} y {2}'.format(sizelista, min_time, max_time))
     print("====="*20)
-    if size is None:
+    if sizelista is None:
         print('Busque con una plataforma válida')
     else:
-        if size < 6:
-            out_n = size
+        if sizelista < 6:
+            out_n = sizelista
         else:
             out_n = 6
         print('Los últimos {0} records son...'.format(out_n))
@@ -309,86 +322,71 @@ def printR5(sorted_list, min_time, max_time):
             )
 
     
-# ___________________________________________________
-# Funciones adicionales y Lab 9
-# ___________________________________________________
 
-def printHeightN(height, n_elements):
-    print("====="*20)
-    print('La altura del árbol de los record y juegos es: {0} y tiene {1} elementos'.format(height, n_elements))
+catalog = None
 
-def printTimeMemory(Time, memoria): 
-    mensaje = "****  Time [ms]: {0} | Memoria [kb]: {1}  ****".format(round(Time,2), round(memoria,2))
-    print(mensaje)
-
-def realDate(string): 
-    return dt.strptime(string, "%Y-%m-%d").date()
-
-analyzer = None
-
-# ___________________________________________________
-# Menu Principal
-# ___________________________________________________
-
+"""
+Menú principal
+"""
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar: ')
     if inputs == "q":
         print("Cargando información de los archivos ....")
 
-        analyzer = controller.init()
+        catalog = controller.call_new_catalog()
 
-        time, memory = controller.load_data(analyzer)   
+        time, memory = controller.load_data(catalog)   
 
-        printGamesAndRecords(analyzer)
-
-        printTimeMemory(time, memory)    
+        printGamesAndRecords(catalog)
+        printTiempo_Memoria(time, memory)    
     
     
     elif inputs == "1":
         platform = input('Nombre de la plataforma: ')
-        min_date = realDate(input("Ingrese el límite inferior de fecha de lanzamiento: "))
-        max_date = realDate(input("Ingrese el Límite superior de fecha de lanzamiento: "))
+        min_date = str_to_date_2(input("Ingrese la fecha minima: "))
+        max_date = str_to_date_2(input("Ingrese la fecha maxima: "))
 
-        sorted_list, time, memory = controller.Call_Req1(analyzer, platform, min_date, max_date)
+        sorted_list, sizelista, time, memory = controller.callR1(catalog, platform, min_date, max_date)
 
-        printR1(sorted_list, platform, min_date, max_date)
-        printTimeMemory(time, memory)
+        printR1(sorted_list, sizelista, platform, min_date, max_date)
+        printTiempo_Memoria(time, memory)
 
     elif inputs == "2":
-        player = input('Ingrese el nombre del jugador: ')
+        player = input('Nombre del jugador: ')
 
-        records_list, n_records, time, memory = controller.Call_Req2(analyzer, player)
+        records_list, n_records, time, memory = controller.callR2(catalog, player)
+
 
         printR2(n_records, records_list, player)
-        printTimeMemory(time, memory)
+        printTiempo_Memoria(time, memory)
     
     elif inputs == "3":
-        min_attempts = int(input('ingrese el límite inferior de intentos: '))
-        max_attempts = int(input('ingrese el límite superior  de intentos: '))
+        min_runs = int(input('ingrese el numero minimo de intentos: '))
+        max_runs = int(input('ingrese el numero maximo de intentos: '))
 
-        sorted_list, time, memory = controller.Call_Req3(analyzer, min_attempts, max_attempts)
+        sorted_list, sizelista, time, memory = controller.callR3(catalog, min_runs, max_runs)
 
-        printR3(sorted_list, min_attempts, max_attempts)
-        printTimeMemory(time, memory)
+        printR3(sorted_list, sizelista, min_runs, max_runs)
+        printTiempo_Memoria(time, memory)
 
     elif inputs == "4":
-        min_date_4 = input('ingrese el límite inferior de la fecha: ')
-        max_date_4 = input('Ingrese el límite superior de la fecha: ')
+        min_date = input('ingrese el numero minimo de intentos: ')
+        max_date = input('ingrese el numero maximo de intentos: ')
 
-        sorted_list, time, memory = controller.Call_Req4(analyzer, min_date_4, max_date_4)
+        sorted_list, sizelista, time, memory = controller.callR4(catalog, min_date, max_date)
 
-        printR4(sorted_list, min_date_4, max_date_4)
-        printTimeMemory(time, memory)
+        printR4(sorted_list, sizelista, min_date, max_date)
+        printTiempo_Memoria(time, memory)
 
     elif inputs == "5":
-        min_time = float(input('ingrese la duración mínima: '))
-        max_time = float(input('ingrese la duración máxima: '))
+        min_time = float(input('ingrese el numero minimo de intentos: '))
+        max_time = float(input('ingrese el numero maximo de intentos: '))
 
-        sorted_list, time, memory = controller.Call_Req5(analyzer, min_time, max_time)
+        sorted_list, sizelista, time, memory = controller.callR5(catalog, min_time, max_time)
 
-        printR5(sorted_list, min_time, max_time)
-        printTimeMemory(time, memory)
+        printR5(sorted_list, sizelista, min_time, max_time)
+        printTiempo_Memoria(time, memory)
 
     else:
         sys.exit(0)
