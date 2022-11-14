@@ -34,18 +34,27 @@ El controlador se encarga de mediar entre la vista y el modelo.
 """
 size = "small" 
 
-#================[llamado del catalogo]=====================
+# ___________________________________________________
+# Inicialización del Catálogo de jugadores
+# ___________________________________________________
 
-def call_new_catalog():
-    catalog = model.new_catalog()
-    return catalog
+def init():
+    """
+    Llama la funcion de inicializacion  del modelo.
+    """
+    # catalog es utilizado para interactuar con el modelo
+    analyzer = model.new_analyzer()
+    return analyzer
 
-# ===================================================
-#  Funciones para la carga de datos y almacenamiento
-#  de datos en los modelos
-# ===================================================
 
-def load_data(catalog):
+# ___________________________________________________
+# Funciones carga de datos
+# ___________________________________________________
+
+def load_data(analyzer):
+    """
+    Carga los datos de los archivos CSV en el modelo
+    """
 
     tracemalloc.start()
 
@@ -54,13 +63,15 @@ def load_data(catalog):
 
     gamesfile = cf.data_dir + '/Speedruns/game_data_utf-8-{0}.csv'.format(size)
     input_file = csv.DictReader(open(gamesfile, encoding='utf-8'), delimiter=",")
+
     for game in input_file:
-        model.add_game(catalog, game)
+        model.AddGameData(analyzer, game)
         
     Recordsfile = cf.data_dir +  '/Speedruns/category_data_urf-8-{0}.csv'.format(size)
     input_file = csv.DictReader(open(Recordsfile, encoding='utf-8'), delimiter=",")
+    
     for record in input_file:
-        model.add_record(catalog, record)
+        model.AddRecordData(analyzer, record)
     
     stop_memory = getMemory()
     stop_time = getTime()
@@ -71,11 +82,11 @@ def load_data(catalog):
     memory = deltaMemory(stop_memory, start_memory)
     return time, memory
 
-#====================================================
-#  Funciones de cada requerimiento
-#====================================================
+# ___________________________________________________
+# Funciones de cada requerimiento
+# ___________________________________________________
 
-def callR1(catalog, platform, min_date, max_date):
+def Call_Req1(analyzer, platform, min_date, max_date):
 
     tracemalloc.start()
 
@@ -83,7 +94,7 @@ def callR1(catalog, platform, min_date, max_date):
     start_memory = getMemory()
 
 
-    sorted_list, sizelista = model.R1_answer(catalog, platform, min_date, max_date)
+    sorted_list, size = model.Req1_VideogamesByRangeDate(analyzer, platform, min_date, max_date)
 
 
     stop_memory = getMemory()
@@ -95,9 +106,9 @@ def callR1(catalog, platform, min_date, max_date):
     memory = deltaMemory(stop_memory, start_memory)
 
 
-    return (sorted_list, sizelista, time, memory)
+    return sorted_list, size, time, memory
 
-def callR2(catalog, player):
+def Call_Req2(analyzer, player):
 
     tracemalloc.start()
 
@@ -105,7 +116,7 @@ def callR2(catalog, player):
     start_memory = getMemory()
 
 
-    records_list, n_records = model.R2_answer(catalog, player)
+    recordlist, Numrecords, size = model.R2_player_records(analyzer, player)
 
 
     stop_memory = getMemory()
@@ -117,9 +128,9 @@ def callR2(catalog, player):
     memory = deltaMemory(stop_memory, start_memory)
 
 
-    return (records_list, n_records, time, memory)
+    return recordlist, Numrecords, size, time, memory
 
-def callR3(catalog, min_runs, max_runs):
+def Call_Req3(analyzer, min_runs, max_runs):
 
     tracemalloc.start()
 
@@ -127,7 +138,7 @@ def callR3(catalog, min_runs, max_runs):
     start_memory = getMemory()
 
 
-    sorted_list, sizelista = model.R3_answer(catalog, min_runs, max_runs)
+    final_list, size = model.Req3_FastestRegistersByAttempts(analyzer, min_runs, max_runs)
 
 
     stop_memory = getMemory()
@@ -139,9 +150,9 @@ def callR3(catalog, min_runs, max_runs):
     memory = deltaMemory(stop_memory, start_memory)
 
 
-    return (sorted_list, sizelista, time, memory)
+    return (final_list, size, time, memory)
 
-def callR4(catalog, min_date, max_date):
+def Call_Req4(analyzer, min_date, max_date):
 
     tracemalloc.start()
 
@@ -149,7 +160,7 @@ def callR4(catalog, min_date, max_date):
     start_memory = getMemory()
 
 
-    sorted_list, sizelista = model.R4_answer(catalog, min_date, max_date)
+    final_list, size = model.Req4_SlowRegistersbyDates(analyzer, min_date, max_date)
 
 
     stop_memory = getMemory()
@@ -161,9 +172,9 @@ def callR4(catalog, min_date, max_date):
     memory = deltaMemory(stop_memory, start_memory)
 
 
-    return (sorted_list, sizelista, time, memory)
+    return (final_list, size, time, memory)
 
-def callR5(catalog, min_time, max_time):
+def Call_Req5(analyzer, min_time, max_time):
 
     tracemalloc.start()
 
@@ -171,7 +182,7 @@ def callR5(catalog, min_time, max_time):
     start_memory = getMemory()
 
 
-    sorted_list, sizelista = model.R5_answer(catalog, min_time, max_time)
+    sorted_list, size = model.Req5_RecentRegistersRecord(analyzer, min_time, max_time)
 
 
     stop_memory = getMemory()
@@ -183,11 +194,11 @@ def callR5(catalog, min_time, max_time):
     memory = deltaMemory(stop_memory, start_memory)
 
 
-    return (sorted_list, sizelista, time, memory)
+    return (sorted_list, size, time, memory)
 
-#====================================================
-#  Funciones para la toma de tiempos
-#====================================================
+# ___________________________________________________
+# Funciones para la toma de tiempos
+# ___________________________________________________
 
 def getTime():
     """
@@ -202,9 +213,11 @@ def deltaTime(end, start):
     elapsed = float(end - start)
     return elapsed
 
-#====================================================
-#  Funciones para la toma de memoria utilizada
-#====================================================
+# _____________________________________________
+# Funciones para la toma de memoria
+# ___________________________________________________
+
+#Tomadas de HALLOFFRAME
 
 def getMemory():
     """
