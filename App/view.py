@@ -26,6 +26,10 @@ import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from datetime import datetime as dt
+import tabulate
+import pandas as pd
+
+
 
 
 """
@@ -170,7 +174,7 @@ def printR1(final_list, size, platform, min_date, max_date):
 def printR2(num_records, size, final_list, player):
     print("====="*20)
     print('la plataforma {0} tiene un total de {1} videojuegos'.format(player, size))
-    print('Released games between dates{0}'.format(listSize(num_records)))
+    #print('Released games between dates{0}'.format(listSize(num_records)))
     print("====="*20)
 
     if num_records is None:
@@ -290,7 +294,7 @@ def printR5(sorted_list, size, min_time, max_time):
             out_n = size
         else:
             out_n = 6
-        print('Los últimos {0} records son...'.format(out_n))
+        print('Los últimos {0} records de más lento a más rápido son...'.format(out_n))
         for record in lt.iterator(sorted_list):
 
             print(
@@ -312,6 +316,15 @@ def printR5(sorted_list, size, min_time, max_time):
                 str(record["Record_Date_0"]) +
                 "\n"
             )
+
+def printR6(dic):
+    tabla = [["bin", "count", "lvl", "mark"]]
+    keys = list(dic.keys())
+    for llave in keys:
+        fila = ["("+str(round(llave[0], 3))+", "+str(round(llave[1],3))+"]", str(dic[llave]["count"]), str(dic[llave]["lvl"]), dic[llave]["mark"]]
+        pds = pd.Series(fila).str.wrap(30)
+        tabla.append(pds)
+    print(tabulate.tabulate(tabla, tablefmt="grid"))
 
     
 # ___________________________________________________
@@ -394,6 +407,28 @@ while True:
 
         printR5(sorted_list, size, min_time, max_time)
         printTimeMemory(time, memory)
+
+    elif inputs == "6":
+        min_date = realDate(input("Ingrese el límite inferior de fecha de lanzamiento: "))
+        max_date = realDate(input("Ingrese el Límite superior de fecha de lanzamiento: "))
+        N = int(input("Ingrese número de segmentos en que se divide el rango de propiedad en el histograma (N): "))
+        x = int(input("Ingrese número de niveles en que se dividen las marcas de juegos en el histograma (x): "))
+        propiedad = input("Ingrese propiedad de la cual se va a hacer el histograma (Time_0 , Time_1, Time_2, Time_Avg, Num_Runs :")
+        req6, time, memory = controller.Call_req6(analyzer,min_date,max_date,propiedad,N,x,)
+        diccionario = req6[0]
+        total = req6[1]
+        llave_min, llave_max = req6[2], req6[3]
+        print("\n=============== Req No. 6 Inputs ===============")
+        print("Count map (histogram) of:", propiedad)
+        print("Number of bins:", N)
+        print("scale:", x)
+        print("\n=============== Req No. 6 Answer ===============")
+        print("There are", req6[5], "(", total, ")" "players on record.")
+        print("The histogram counts", total, "juegos.")
+        print("The minimum and maximum value of property", propiedad, "is:", llave_min, "and", llave_max)
+        print(propiedad, "Histogram with", N, "bins and", x, "players per lvl mark.")
+        printR6(diccionario)
+        print("NOTE: Each '*' represents",x,"attempts.")
 
     else:
         sys.exit(0)

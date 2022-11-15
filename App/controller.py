@@ -32,7 +32,7 @@ from DISClib.ADT import list as lt
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
-size = "small" 
+size = "10pct" 
 
 # ___________________________________________________
 # Inicialización del Catálogo de jugadores
@@ -195,6 +195,27 @@ def Call_Req5(analyzer, min_time, max_time):
 
 
     return (sorted_list, size, time, memory)
+
+def Call_req6(analyzer, min_date, max_date, propiedad, N, X):
+
+    tracemalloc.start()
+
+    start_time = getTime()
+    start_memory = getMemory()
+
+    resultado = model.Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, X)
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+  
+    tracemalloc.stop()
+
+    time = deltaTime(stop_time, start_time)
+    memory = deltaMemory(stop_memory, start_memory)
+    
+    return(resultado,time,memory)
+
+
 
 # ___________________________________________________
 # Funciones para la toma de tiempos

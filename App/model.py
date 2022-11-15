@@ -247,34 +247,37 @@ def treeSize(tree):
 #=^..^=   [Requerimiento 1]  =^..^=    =^..^=    =^..^=    =^..^=
                       
 def Req1_VideogamesByRangeDate(analyzer, platform, min_date, max_date):
-    map1 = analyzer["Req1_VideogamesByRangeDate"]
-    lst = om.values(map1, min_date, max_date)
-    games_by_platform = lt.newList(datastructure = "ARRAY_LIST")
-    for lst_games in lt.iterator(lst):
+    map1 = analyzer["Req1_VideogamesByRangeDate"]   
+    lst = om.values(map1, min_date, max_date)                     #O(logn)
+    games_by_platform = lt.newList(datastructure = "ARRAY_LIST")  #O(1)
+
+    for lst_games in lt.iterator(lst):                            #O(n^2)
         for game in lt.iterator(lst_games):
             if platform in game["Platforms"]:
-                lt.addLast(games_by_platform, game)
-    sorted_list = sortList(games_by_platform, cmp_Req1)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+                lt.addLast(games_by_platform, game)               #O(n^2)
+
+    sorted_list = sortList(games_by_platform, cmp_Req1)           #O(n^2)
+    final_list = FirstandLast(sorted_list)                        #O(n^2)
+    return final_list, listSize(sorted_list)                      #La complejidad se resume en el ordenamiento con insertion O(n^2)
 
 
 
 #=^..^=   [Requerimiento 2]  =^..^=    =^..^=    =^..^=    =^..^=
                     
 def R2_player_records(analyzer, player):
-    existRecords = om.get(analyzer['Req2_RegistersByShorterTime'], player)  
+    existRecords = om.get(analyzer['Req2_RegistersByShorterTime'], player)   #O(logn)
     #contención de error
     if (existRecords is None):
         return None
-    list_values = existRecords['value']                       
-    Num_records = listSize(list_values)                   
-    final_list = sortList(list_values, cmp_Req2)
+    list_values = existRecords['value']                                       #O(1)            
+    Num_records = listSize(list_values)                                       #O(1)
+    final_list = sortList(list_values, cmp_Req2)                              #O(n^2)
     if lt.size(final_list) >= 5:
-        first_five_players = subList(final_list, 1, 5)
+        first_five_players = subList(final_list, 1, 5)                        #O(1)
         return first_five_players, Num_records, listSize(final_list)
     else:
-        return final_list, Num_records, listSize(final_list)
+        return final_list, Num_records, listSize(final_list)                  #La complejidad se resume en el ordenamiento con insertion 
+                                                                              #O(n^2)            
     
     
 
@@ -282,41 +285,48 @@ def R2_player_records(analyzer, player):
                       
 def Req3_FastestRegistersByAttempts(analyzer, min_time, max_time):
     map_analyzer = analyzer["Req3_FastestRegistersByAttempts"]
-    list_ = om.values(map_analyzer, min_time, max_time)
-    fastest_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record in lt.iterator(list_):
+    list_ = om.values(map_analyzer, min_time, max_time)                     #O(logn)
+    fastest_records = lt.newList(datastructure = "ARRAY_LIST")              #O(1)
+
+    for record in lt.iterator(list_):                                       #O(n^2)
         for finalRecord in lt.iterator(record):
-            lt.addLast(fastest_records, finalRecord)
-    sorted_list = sortList(fastest_records, cmp_Req3and4)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(fastest_records, finalRecord)                        #O(1)
+
+    sorted_list = sortList(fastest_records, cmp_Req3and4)                   #O(n^2)
+    final_list = FirstandLast(sorted_list)                                  #O(n^2)
+    return final_list, listSize(sorted_list)                                #La complejidad se resume en el ordenamiento con insertion O(n^2)            
+    
 
 
 #=^..^=   [Requerimiento 4]  =^..^=    =^..^=    =^..^=    =^..^=
 
 def Req4_SlowRegistersbyDates(analyzer, min_date, max_date):                   
-    map_analyzer = analyzer["Req4_SlowRegistersbyDates"]
-    lst = om.values(map_analyzer, min_date, max_date)
-    date_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record_date in lt.iterator(lst):
+    map_analyzer = analyzer["Req4_SlowRegistersbyDates"]                   
+    lst = om.values(map_analyzer, min_date, max_date)                       #O(logn)
+    
+    date_records = lt.newList(datastructure = "ARRAY_LIST")                 #O(1)
+    for record_date in lt.iterator(lst):                                    #O(n^2)
         for final_record in lt.iterator(record_date):
-            lt.addLast(date_records, final_record)
-    sorted_list= sortList(date_records, cmp_Req3and4)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(date_records, final_record)                          #O(1)
+    
+    sorted_list= sortList(date_records, cmp_Req3and4)                       #O(n^2)
+    final_list = FirstandLast(sorted_list)                                  #O(n^2)
+    return final_list, listSize(sorted_list)                                #La complejidad se resume en el ordenamiento con insertion O(n^2)            
 
 #=^..^=   [Requerimiento 5]  =^..^=    =^..^=    =^..^=    =^..^=
 
 def Req5_RecentRegistersRecord(analyzer, min_time, max_time):                   
     map_analyzer = analyzer["Req5_RecentRegistersRecord"]
-    lst = om.values(map_analyzer, min_time, max_time)
-    time_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record_time in lt.iterator(lst):
+    lst = om.values(map_analyzer, min_time, max_time)                      #O(logn)
+    
+    time_records = lt.newList(datastructure = "ARRAY_LIST")                #O(1)
+    for record_time in lt.iterator(lst):                                   #O(n^2)
         for final_record in lt.iterator(record_time):
-            lt.addLast(time_records, final_record)
-    sorted_list = sortList(time_records, cmp_Req5)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(time_records, final_record)                         #O(1)
+    
+    sorted_list = sortList(time_records, cmp_Req5)                         #O(n^2)
+    final_list = FirstandLast(sorted_list)                                 #O(n^2)
+    return final_list, listSize(sorted_list)                               #La complejidad se resume en el ordenamiento con insertion O(n^2)            
 
 
 
@@ -428,14 +438,15 @@ def FirstandLast(lista):
     sizelista = lt.size(lista)
     if sizelista <=6:
         return lista
-    first_3 = subList(lista,1, 3)
-    last_3 = subList(lista,sizelista-2, 3)
-    FinalList = lt.newList("ARRAY_LIST")
-    for i in lt.iterator(first_3):
-        lt.addLast(FinalList, i) 
-    for a in lt.iterator(last_3):
-        lt.addLast(FinalList, a)
-    return FinalList
+    else:
+        first_3 = subList(lista,1, 3)
+        last_3 = subList(lista,sizelista-2, 3)
+        FinalList = lt.newList("ARRAY_LIST")
+        for i in lt.iterator(first_3):
+            lt.addLast(FinalList, i) 
+        for a in lt.iterator(last_3):
+            lt.addLast(FinalList, a)
+        return FinalList
 
 # ___________________________________________________
 # Funciones Lab 9
