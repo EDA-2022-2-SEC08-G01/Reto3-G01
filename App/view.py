@@ -1,4 +1,4 @@
-"""
+﻿"""
  * Copyright 2020, Departamento de sistemas y Computación, Universidad
  * de Los Andes
  *
@@ -30,16 +30,12 @@ import tabulate
 import pandas as pd
 
 
-
-
 """
 La vista se encarga de la interacción con el usuario
 Presenta el menu de opciones y por cada seleccion
 se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
-
-
 # ___________________________________________________
 # Menu Principal
 # ___________________________________________________
@@ -137,6 +133,8 @@ def printGamesAndRecords(analyzer):
 # ___________________________________________________
 def listSize(list):
     return lt.size(list)
+def realDate(string): 
+    return dt.strptime(string, "%Y-%m-%d").date()
 
 def printR1(final_list, size, platform, min_date, max_date):
     
@@ -170,11 +168,10 @@ def printR1(final_list, size, platform, min_date, max_date):
                 "\n"
             )
 
-
 def printR2(num_records, size, final_list, player):
     print("====="*20)
     print('la plataforma {0} tiene un total de {1} videojuegos'.format(player, size))
-    #print('Released games between dates{0}'.format(listSize(num_records)))
+    print('Released games between dates{0}'.format(listSize(num_records)))
     print("====="*20)
 
     if num_records is None:
@@ -207,9 +204,7 @@ def printR2(num_records, size, final_list, player):
                 "\n"
             )
 
-
 def printR3(final_list, size, min_runs, max_runs):
-
     print("====="*20)
     print('Hay un total de {0} intentos de speedruns entre {1} intentos y {2} intentos'.format(size, min_runs, max_runs))
     print("====="*20)
@@ -243,7 +238,6 @@ def printR3(final_list, size, min_runs, max_runs):
                 str(record["Record_Date_0"]) +
                 "\n"
             )
-
 
 def printR4(final_list, size, min_date, max_date):
     size = lt.size(final_list)
@@ -294,7 +288,7 @@ def printR5(sorted_list, size, min_time, max_time):
             out_n = size
         else:
             out_n = 6
-        print('Los últimos {0} records de más lento a más rápido son...'.format(out_n))
+        print('Los últimos {0} records son...'.format(out_n))
         for record in lt.iterator(sorted_list):
 
             print(
@@ -316,21 +310,19 @@ def printR5(sorted_list, size, min_time, max_time):
                 str(record["Record_Date_0"]) +
                 "\n"
             )
-
-
-def printR6(histograms,size,minim,maxim):
+def printR6(hist,size,minim,maxim):
 
     print('\n Hay '+ str(size)+' intentos registrados')
     print('\n Valor Mínimo: '+ str(minim))
     print('\n Valor Máximo: '+ str(maxim))
 
     iterate=lt.newList(datastructure='ARRAY_LIST')
-    for i in sorted(histograms):
+    for i in sorted(hist):
         dic={
             'bin':i,
-            'count':histograms[i][0],
-            'lvl':histograms[i][1],
-            'mark': ('*'*(histograms[i][1]))
+            'count':hist[i][0],
+            'lvl':hist[i][1],
+            'mark': ('*'*(hist[i][1]))
         }
         lt.addLast(iterate,dic)
     
@@ -338,14 +330,19 @@ def printR6(histograms,size,minim,maxim):
     print('\n')
     print(tabla)
 
-def printR7(platform,N,size,tops,notMisc):
+analyzer = None
+def printTimeMemory(tiempo, memoria): 
+    mensaje = "****  Tiempo [ms]: {0} | Memoria [kb]: {1}  ****".format(round(tiempo,2), round(memoria,2))
+    print(mensaje)
+
+def printR7(platform,N,size,top,notMisc):
     print('HAY '+ str(size)+' REGISTROS PARA '+platform)
     print('HAY '+ str(notMisc)+'  JUEGOS UNICOS PARA '+platform)
 
     print('\n----- TOP '+ N + ' JUEGOS PARA '+ platform + ' -----')
 
     iterate=lt.newList('ARRAY_LIST')
-    for i in tops['elements']:
+    for i in top['elements']:
         key=i['key']
         info= i['value']
         dic={
@@ -356,33 +353,9 @@ def printR7(platform,N,size,tops,notMisc):
                 'Stream_Revenue':key
             }
         lt.addLast(iterate,dic)
-
-    tabla= tabulate(iterate['elements'],headers='keys',tablefmt='grid')
-    print('\n')
-    print(tabla)
-
-    
-# ___________________________________________________
-# Funciones adicionales y Lab 9
-# ___________________________________________________
-
-def printHeightN(height, n_elements):
-    print("====="*20)
-    print('La altura del árbol de los record y juegos es: {0} y tiene {1} elementos'.format(height, n_elements))
-
-def printTimeMemory(Time, memoria): 
-    mensaje = "****  Time [ms]: {0} | Memoria [kb]: {1}  ****".format(round(Time,2), round(memoria,2))
-    print(mensaje)
-
-def realDate(string): 
-    return dt.strptime(string, "%Y-%m-%d").date()
-
-analyzer = None
-
 # ___________________________________________________
 # Menu Principal
 # ___________________________________________________
-
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar: ')
@@ -442,22 +415,20 @@ while True:
 
         printR5(sorted_list, size, min_time, max_time)
         printTimeMemory(time, memory)
-
- 
     elif inputs == '6':
-        propiedad = input('ingrese la propiedad a consultar: ')
+        propiedad= input('ingrese la propiedad a consultar: ')
         min_date = input('Ingrese el año mínimo de consulta: ')
-        max_date = input('Ingrese el año máximo de consulta: ')
-        N = input('Ingrese el numero de bins: ')
-        X = input('Ingrese el numero de niveles: ')
+        max_date= input('Ingrese el año máximo de consulta: ')
+        N= input('Ingrese el numero de bins: ')
+        x= input('Ingrese el numero de niveles: ')
 
-        if len(controller.Call_req6(analyzer, min_date, max_date, propiedad, N, X)) > 2:
-            histograms,size,minim,maxim,time,memory= controller.Call_req6(analyzer, min_date, max_date, propiedad, N, X)
+        if len(controller.Call_req6(analyzer,max_date,min_date,propiedad,N,x)) > 2:
+            hist,size,minim,maxim,time,memory= controller.Call_req6(analyzer,max_date,min_date,propiedad,N,x)
 
-            printR6(histograms,size,minim,maxim)
+            printR6(hist,size,minim,maxim)
             printTimeMemory(time, memory)
         else:
-            time,memory=controller.Call_req6(analyzer, min_date, max_date, propiedad, N, X)
+            time,memory=controller.Call_req6(analyzer,max_date,min_date,propiedad,N,x)
             print('\n No se encontró la propiedad')
             printTimeMemory(time, memory)
 
@@ -465,15 +436,16 @@ while True:
         N = input('ingrese TOP N: ')
         platform = input('ingrese la plataforma: ')
         if len(controller.Call_req7(analyzer,platform,N))>2:
-            tops,size,notMisc, time, memory = controller.Call_req7(analyzer,platform,N)
+            top,size,notMisc, time, memory = controller.Call_req7(analyzer,platform,N)
 
-            printR7(platform,N, size,tops,notMisc)
+            printR7(platform,N, size,top,notMisc)
             printTimeMemory(time, memory)   
         else:
             time, memory = controller.Call_req7(analyzer,platform,N)
             print('\n No se encontró la plataforma')
             printTimeMemory(time, memory)
-
-    else:
+    
+    
+    else: 
         sys.exit(0)
 sys.exit(0)
