@@ -1,4 +1,4 @@
-﻿"""
+"""
  * Copyright 2020, Departamento de sistemas y Computación,
  * Universidad de Los Andes
  *
@@ -22,7 +22,7 @@
 
 
 import config as cf
-import model
+import model_2 as model
 import csv
 import time
 import tracemalloc
@@ -32,7 +32,7 @@ from DISClib.ADT import list as lt
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
-size = "small" 
+size = "10pct" 
 
 # ___________________________________________________
 # Inicialización del Catálogo de jugadores
@@ -72,10 +72,6 @@ def load_data(analyzer):
     
     for record in input_file:
         model.AddRecordData(analyzer, record)
-        
-
-
-    
     
     stop_memory = getMemory()
     stop_time = getTime()
@@ -200,25 +196,12 @@ def Call_Req5(analyzer, min_time, max_time):
 
     return (sorted_list, size, time, memory)
 
-def Call_req6(analyzer, min_date, max_date, propiedad, N, x):
-    tracemalloc.start()
-    start_time = getTime()
-    start_memory = getMemory()
-    resultado = model.Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, x)
-    stop_memory = getMemory()
-    stop_time = getTime()
-  
-    tracemalloc.stop()
+def Call_req6(analyzer, min_date, max_date, propiedad, N, X):
 
-    time = deltaTime(stop_time, start_time)
-    memory = deltaMemory(stop_memory, start_memory)
-    return(resultado, time, memory)
-
-def Call_req6(analyzer, max_date, min_date, propiedad, N, x):
     max_date=int(max_date)
     min_date=int(min_date)
-    N=int(N)
-    x=int(x)
+    N = int(N)
+    X = int(X)
     propiedad=propiedad.lower()
 
     tracemalloc.start()
@@ -226,9 +209,9 @@ def Call_req6(analyzer, max_date, min_date, propiedad, N, x):
     start_time = getTime()
     start_memory = getMemory()
 
-    if model.Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, x) != None:
+    if model.histogram(analyzer,max_date,min_date,propiedad,N,X) != None:
         
-        hist,size,minim,maxim= model.Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, x)
+        histograms,size,minim,maxim= model.histogram(analyzer,max_date,min_date,propiedad,N,X)
 
         stop_memory = getMemory()
         stop_time = getTime()
@@ -238,7 +221,7 @@ def Call_req6(analyzer, max_date, min_date, propiedad, N, x):
         time = deltaTime(stop_time, start_time)
         memory = deltaMemory(stop_memory, start_memory)
 
-        return hist,size,minim,maxim,time,memory
+        return histograms,size,minim,maxim,time,memory
 
     else:
 
@@ -252,7 +235,7 @@ def Call_req6(analyzer, max_date, min_date, propiedad, N, x):
 
         return time, memory
 
-def Call_req7(catalog,plataform,N):
+def Call_req7(analyzer,plataform,N):
     N=int(N)
 
     tracemalloc.start()
@@ -260,8 +243,8 @@ def Call_req7(catalog,plataform,N):
     start_time = getTime()
     start_memory = getMemory()
 
-    if model.R7_TOPN(catalog,plataform,N) != None:
-        top,size,notMisc= model.R7_TOPN(catalog,plataform,N)
+    if model.topN(analyzer,plataform,N) != None:
+        tops ,size,notMisc= model.topN(analyzer,plataform,N)
 
         stop_memory = getMemory()
         stop_time = getTime()
@@ -271,7 +254,7 @@ def Call_req7(catalog,plataform,N):
         time = deltaTime(stop_time, start_time)
         memory = deltaMemory(stop_memory, start_memory)
 
-        return top,size,notMisc, time, memory
+        return tops ,size,notMisc, time, memory
 
     else:
 
@@ -284,6 +267,7 @@ def Call_req7(catalog,plataform,N):
         memory = deltaMemory(stop_memory, start_memory)
 
         return time, memory
+
 # ___________________________________________________
 # Funciones para la toma de tiempos
 # ___________________________________________________

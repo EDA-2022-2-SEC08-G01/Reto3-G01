@@ -1,4 +1,4 @@
-﻿"""
+"""
  * Copyright 2020, Departamento de sistemas y Computación,
  * Universidad de Los Andes
  *
@@ -54,15 +54,13 @@ def new_analyzer():
     analyzer = { 
                 "category_data": None,
                 'game_data': None,
-                "cat_game_data":None,
                 "Req1_VideogamesByRangeDate": None,
                 'Req2_RegistersByShorterTime': None,
                 "Req3_FastestRegistersByAttempts":None,
                 "Req4_SlowRegistersbyDates" : None,
                 "Req5_RecentRegistersRecord":None,
-                "Req6_Histrogram":None,
-                "Req7_TopNVideogames":None,
-                "Ayuda_Req6":None
+                "Req6_HistogramRegistersbyYears":None,
+                "Req7_TopNVideogames":None
 
     }
 
@@ -79,13 +77,12 @@ def new_analyzer():
     analyzer["Req4_SlowRegistersbyDates"] = om.newMap(omaptype="RBT")
 
     analyzer['Req5_RecentRegistersRecord']   = om.newMap(omaptype="RBT")
-
-    analyzer['Req6_Histrogram'] = om.newMap(omaptype="RBT",comparefunction=cmptime)
+     
+    analyzer["Req6_HistogramRegistersbyYears"] = om.newMap(omaptype="BST",comparefunction=cmp_Req6)
 
     analyzer["Req7_TopNVideogames"] = mp.newMap(numelements=100000,
                                             maptype='PROBING', 
-                                            loadfactor=0.5)       
-    analyzer["Ayuda_Req6"] = om.newMap(omaptype="RBT")       
+                                            loadfactor=0.5)                    
     return analyzer 
 
 
@@ -99,8 +96,7 @@ def AddGameData(analyzer, game):
 
     R1_carga(analyzer, game)
     R6_carga(analyzer, game)
-    R7_carga(analyzer,game)
-
+    R7_carga(analyzer, game)
     #Agregar a la lista general de juegos
 
     lt.addLast(analyzer["games_data"], game)
@@ -118,7 +114,6 @@ def NameById(analyzer, record):
         if game["Game_Id"] == record["Game_Id"]:
             name_by_Id.put(data, record["Game_Id"],game["Name"])
     return name_by_Id
-
 """
 def AddRecordData(analyzer, record):
  
@@ -161,17 +156,17 @@ def R1_carga(analyzer, game):
 def R2_carga(analyzer, record):
     if record['Players_0'] != '':
 
-        player_lst = record["Players_0"].split(",")
-        for player in player_lst:
+        player_list = record["Players_0"].split(",")
+        for player in player_list:
             player = player.strip(" ")
                 
-            xst_player = om.get(analyzer["Req2_RegistersByShorterTime"], player)
+            exist_player = om.get(analyzer["Req2_RegistersByShorterTime"], player)
 
-            if xst_player is None:
+            if exist_player is None:
                 new_list = lt.newList(datastructure = "ARRAY_LIST")
                 om.put(analyzer["Req2_RegistersByShorterTime"], player, new_list)
             else: 
-                new_list = me.getValue(xst_player)
+                new_list = me.getValue(exist_player)
             lt.addLast(new_list, record)
 
 #=^..^=   [Requerimiento 3]  =^..^=    =^..^=    =^..^=    =^..^=
@@ -226,35 +221,20 @@ def R5_carga(analyzer, record):
 
 def R6_carga(analyzer, game):
     if game['Release_Date'] != '':
-        Release_Date = str_2_date(game['Release_Date'])
-        exist= om.contains(analyzer["Req6_Histrogram"], int(Release_Date.year))
+        Release_Date = CompleteDate(game['Release_Date'])
+        exist_date = om.contains(analyzer["Req6_HistogramRegistersbyYears"], int(Release_Date.year))
 
-        if exist:
-            entry= om.get(analyzer["Req6_Histrogram"],int(Release_Date.year))
-            year=me.getValue(entry)
-            lt.addLast(year,game)
+        if exist_date:
+            get = om.get(analyzer["Req6_HistogramRegistersbyYears"],int(Release_Date.year))
+            value_get =me.getValue(get)
+            lt.addLast(value_get,game)
             
         else: 
-            lsta=lt.newList(datastructure='ARRAY_LIST')
-            om.put(analyzer['Req6_Histrogram'],int(Release_Date.year),lsta)
-            entry= om.get(analyzer['Req6_Histrogram'],int(Release_Date.year))
-            year=me.getValue(entry)
-            lt.addLast(year,game)
-
-
-        
-#def Funcion_adicional(analyzer, record):
- #   if record["Game_Id"] != "":
-  #      id = record["Game_Id"]
-   #     exist_id = om.get(analyzer["Ayuda_Req6"], id)
-#
-  #      if exist_id is None:
- #           new_list = lt.newList(datastructure = "ARRAY_LIST")
-   #         om.put(analyzer["Ayuda_Req6"], exist_id, new_list)
-     #   else: 
-    #        new_list = me.getValue(exist_id)
-      #  lt.addLast(new_list, record)
-
+            lista = lt.newList(datastructure='ARRAY_LIST')
+            om.put(analyzer['Req6_HistogramRegistersbyYears'],int(Release_Date.year),lista)
+            get = om.get(analyzer['Req6_HistogramRegistersbyYears'],int(Release_Date.year))
+            value_get = me.getValue(get)
+            lt.addLast(value_get,game)
 #=^..^=   [Requerimiento 7]  =^..^=    =^..^=    =^..^=    =^..^=
 def R7_carga(analyzer,game):
 
@@ -274,6 +254,7 @@ def R7_carga(analyzer,game):
             entry= om.get(analyzer['Req7_TopNVideogames'],platform)
             rev=me.getValue(entry)
             lt.addLast(rev,game)
+
 # ___________________________________________________
 # Funciones genericas
 # ___________________________________________________
@@ -301,34 +282,37 @@ def treeSize(tree):
 #=^..^=   [Requerimiento 1]  =^..^=    =^..^=    =^..^=    =^..^=
                       
 def Req1_VideogamesByRangeDate(analyzer, platform, min_date, max_date):
-    map1 = analyzer["Req1_VideogamesByRangeDate"]
-    lst = om.values(map1, min_date, max_date)
-    games_by_platform = lt.newList(datastructure = "ARRAY_LIST")
-    for lst_games in lt.iterator(lst):
+    map1 = analyzer["Req1_VideogamesByRangeDate"]   
+    lst = om.values(map1, min_date, max_date)                     #O(logn)
+    games_by_platform = lt.newList(datastructure = "ARRAY_LIST")  #O(1)
+
+    for lst_games in lt.iterator(lst):                            #O(n^2)
         for game in lt.iterator(lst_games):
             if platform in game["Platforms"]:
-                lt.addLast(games_by_platform, game)
-    sorted_list = sortList(games_by_platform, cmp_Req1)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+                lt.addLast(games_by_platform, game)               #O(n^2)
+
+    sorted_list = sortList(games_by_platform, cmp_Req1)           #O(n^2)
+    final_list = FirstandLast(sorted_list)                        #O(n^2)
+    return final_list, listSize(sorted_list)                      #La complejidad se resume en el ordenamiento con insertion O(n^2)
 
 
 
 #=^..^=   [Requerimiento 2]  =^..^=    =^..^=    =^..^=    =^..^=
                     
 def R2_player_records(analyzer, player):
-    existRecords = om.get(analyzer['Req2_RegistersByShorterTime'], player)  
+    existRecords = om.get(analyzer['Req2_RegistersByShorterTime'], player)   #O(logn)
     #contención de error
     if (existRecords is None):
         return None
-    list_values = existRecords['value']                       
-    Num_records = listSize(list_values)                   
-    final_list = sortList(list_values, cmp_Req2)
+    list_values = existRecords['value']                                       #O(1)            
+    Num_records = listSize(list_values)                                       #O(1)
+    final_list = sortList(list_values, cmp_Req2)                              #O(n^2)
     if lt.size(final_list) >= 5:
-        first_five_players = subList(final_list, 1, 5)
+        first_five_players = subList(final_list, 1, 5)                        #O(1)
         return first_five_players, Num_records, listSize(final_list)
     else:
-        return final_list, Num_records, listSize(final_list)
+        return final_list, Num_records, listSize(final_list)                  #La complejidad se resume en el ordenamiento con insertion 
+                                                                              #O(n^2)            
     
     
 
@@ -336,378 +320,274 @@ def R2_player_records(analyzer, player):
                       
 def Req3_FastestRegistersByAttempts(analyzer, min_time, max_time):
     map_analyzer = analyzer["Req3_FastestRegistersByAttempts"]
-    list_ = om.values(map_analyzer, min_time, max_time)
-    fastest_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record in lt.iterator(list_):
+    list_ = om.values(map_analyzer, min_time, max_time)                     #O(logn)
+    fastest_records = lt.newList(datastructure = "ARRAY_LIST")              #O(1)
+
+    for record in lt.iterator(list_):                                       #O(n^2)
         for finalRecord in lt.iterator(record):
-            lt.addLast(fastest_records, finalRecord)
-    sorted_list = sortList(fastest_records, cmp_Req3and4)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(fastest_records, finalRecord)                        #O(1)
+
+    sorted_list = sortList(fastest_records, cmp_Req3and4)                   #O(n^2)
+    final_list = FirstandLast(sorted_list)                                  #O(n^2)
+    return final_list, listSize(sorted_list)                                #La complejidad se resume en el ordenamiento con insertion O(n^2)            
+    
 
 
 #=^..^=   [Requerimiento 4]  =^..^=    =^..^=    =^..^=    =^..^=
 
 def Req4_SlowRegistersbyDates(analyzer, min_date, max_date):                   
-    map_analyzer = analyzer["Req4_SlowRegistersbyDates"]
-    lst = om.values(map_analyzer, min_date, max_date)
-    date_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record_date in lt.iterator(lst):
+    map_analyzer = analyzer["Req4_SlowRegistersbyDates"]                   
+    lst = om.values(map_analyzer, min_date, max_date)                       #O(logn)
+    
+    date_records = lt.newList(datastructure = "ARRAY_LIST")                 #O(1)
+    for record_date in lt.iterator(lst):                                    #O(n^2)
         for final_record in lt.iterator(record_date):
-            lt.addLast(date_records, final_record)
-    sorted_list= sortList(date_records, cmp_Req3and4)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(date_records, final_record)                          #O(1)
+    
+    sorted_list= sortList(date_records, cmp_Req3and4)                       #O(n^2)
+    final_list = FirstandLast(sorted_list)                                  #O(n^2)
+    return final_list, listSize(sorted_list)                                #La complejidad se resume en el ordenamiento con insertion O(n^2)            
 
 #=^..^=   [Requerimiento 5]  =^..^=    =^..^=    =^..^=    =^..^=
 
 def Req5_RecentRegistersRecord(analyzer, min_time, max_time):                   
     map_analyzer = analyzer["Req5_RecentRegistersRecord"]
-    lst = om.values(map_analyzer, min_time, max_time)
-    time_records = lt.newList(datastructure = "ARRAY_LIST")
-    for record_time in lt.iterator(lst):
+    lst = om.values(map_analyzer, min_time, max_time)                      #O(logn)
+    
+    time_records = lt.newList(datastructure = "ARRAY_LIST")                #O(1)
+    for record_time in lt.iterator(lst):                                   #O(n^2)
         for final_record in lt.iterator(record_time):
-            lt.addLast(time_records, final_record)
-    sorted_list = sortList(time_records, cmp_Req5)
-    final_list = FirstandLast(sorted_list)
-    return final_list, listSize(sorted_list)
+            lt.addLast(time_records, final_record)                         #O(1)
+    
+    sorted_list = sortList(time_records, cmp_Req5)                         #O(n^2)
+    final_list = FirstandLast(sorted_list)                                 #O(n^2)
+    return final_list, listSize(sorted_list)                               #La complejidad se resume en el ordenamiento con insertion O(n^2)            
 
 #=^..^=   [Requerimiento 6]  =^..^=    =^..^=    =^..^=    =^..^=
-#def Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, x):
-    map = analyzer["Req6_Histrogram"]
-    lst = om.values(map, min_date, max_date)
-    print(lst,"Re loco")
-    map_ayuda = analyzer["Ayuda_Req6"]
-    print(map_ayuda,"re loco papi")
-    for i in lt.iterator(lst):
-        for key in lt.iterator(i):
-            id = key["Name"]
-            contains = om.contains(map_ayuda,id)
-            if contains == True:
-                f = om.get(map_ayuda,id)
-                for r in lt.iterator(f):
-                    if propiedad == "Time_Avg":
-                        Dic = {"Time_Avg": None}
-                        tim0 = r["Time_0"]
-                        tim1 = r["Time_1"]
-                        tim2 = r["Time_2"]
-                        Time_Ag = (tim0+tim1+tim2)/3
-                        Dic["Time_Avg"] = Time_Ag
-                        print(Dic)
-                        lt.addLast(lst,Dic)
-    #print((lst), "Re loco papi")
-    games_by_propoperty =  om.newMap(omaptype="RBT")
-    for lst_games in lt.iterator(lst):
-        for game in lt.iterator(lst_games):
-            if propiedad == "Time_Avg":
-                Time0 = game["Time_0"]
-                time1 = game["Time_1"]
-                time2 = game["Time_2"]
-                time_prom =(Time0+time1+time2)/3
-                om.put(games_by_propoperty,time_prom, game)   
-            elif game[propiedad] != "":
-                om.put(games_by_propoperty,game[propiedad], game)
-    llave_max = om.maxKey(games_by_propoperty)
-    llave_min = om.minKey(games_by_propoperty)
-    size = om,size(games_by_propoperty)
-    num_elem = llave_max - llave_min
-    # Tamaño de cada rango
-    tam = num_elem / N
-
-    # Armar los intervalos y buscar sus valores.
-    total = 0
-    n = 0
-    min = llave_min
-    max = llave_min + tam
-    dic = {}
-    while n < N:
-        lista = om.values(games_by_propoperty, min, max)
-        count = 0
-        for lst_games in lt.iterator(lista):
-            games2 = lt.getElement(lst_games, 1)
-            if min != games2[propiedad]:
-                count += lt.size(lst_games)
-                total += lt.size(lst_games)
-
-        dic[(min,max)] = {"count": count, "lvl": count//x, "mark": "* "*(count//x)}
-        min = max 
-        max += tam
-        n += 1
-    return dic, total, llave_min, llave_max, size
-
-
-
-
-#def Req6_histograma_por_rango(analyzer, min_date, max_date, propiedad, N, x):
-    map = analyzer["Req6_Histrogram"]
-    lst = om.values(map, min_date, max_date)
-    print((lst), "Re loco papi")
-    games_by_propoperty =  om.newMap(omaptype="RBT")
-    for lst_games in lt.iterator(lst):
-        for game in lt.iterator(lst_games):
-            if propiedad == "Time_Avg":
-                Time0 = game["Time_0"]
-                time1 = game["Time_1"]
-                time2 = game["Time_2"]
-                time_prom =(Time0+time1+time2)/3
-                om.put(games_by_propoperty,time_prom, game)   
-            elif game[propiedad] != "":
-                om.put(games_by_propoperty,game[propiedad], game)
-    llave_max = om.maxKey(games_by_propoperty)
-    llave_min = om.minKey(games_by_propoperty)
-    size = om,size(games_by_propoperty)
-    num_elem = llave_max - llave_min
-    # Tamaño de cada rango
-    tam = num_elem / N
-
-    # Armar los intervalos y buscar sus valores.
-    total = 0
-    n = 0
-    min = llave_min
-    max = llave_min + tam
-    dic = {}
-    while n < N:
-        lista = om.values(games_by_propoperty, min, max)
-        count = 0
-        for lst_games in lt.iterator(lista):
-            games2 = lt.getElement(lst_games, 1)
-            if min != games2[propiedad]:
-                count += lt.size(lst_games)
-                total += lt.size(lst_games)
-
-        dic[(min,max)] = {"count": count, "lvl": count//x, "mark": "* "*(count//x)}
-        min = max 
-        max += tam
-        n += 1
-    return dic, total, llave_min, llave_max, size
-
-
-def rgstrInYears(analyzer,max_date,min_date,propiedad):
-    years= analyzer['Req6_Histrogram']
-    interval= om.keys(years,min_date,max_date)
+def YearsHistogram(analyzer,max_date,min_date,propiedad):
+    dates = analyzer['Req6_HistogramRegistersbyYears']
+    ranges = om.keys(dates,min_date,max_date)
 
     if propiedad == 'time_0':
-        times=om.newMap(omaptype='BST',comparefunction=cmptime)
-        for i in lt.iterator(interval): 
-            info=i['value']
-            for j in info:
-                game=findGame(analyzer,j)
-                om.put(times,game['Time_0'],game)
-        return times
+        tiempos = om.newMap(omaptype='BST',comparefunction=cmp_Req6)
+        for i in lt.iterator(ranges): 
+            information = i['value']
+            for j in information:
+                game = SearchGame(analyzer,j)
+                om.put(tiempos,game['Time_0'],game)
+        return tiempos
 
     elif propiedad == 'time_1':
-        times=om.newMap(omaptype='BST',comparefunction=cmptime)
-        for i in lt.iterator(interval): 
-            info= om.get(years,i)
-            info=info['value']['elements']
-            for j in info:
-                game=findGame(analyzer,j)
-                time= time= float(game['Time_1'].strip() or 0)
-                if time != 0 or time != '':
-                    om.put(times,time,game)
-        return times
+        tiempos = om.newMap(omaptype='BST',comparefunction=cmp_Req6)
+        for i in lt.iterator(ranges): 
+            information = om.get(dates,i)
+            information = information['value']['elements']
+            for j in information:
+                game = SearchGame(analyzer,j)
+                tiempo = tiempo = float(game['Time_1'].strip() or 0)
+                if tiempo != 0 or tiempo != '':
+                    om.put(tiempos,tiempo,game)
+        return tiempos
 
     elif propiedad == 'time_2':
-        times=om.newMap(omaptype='BST',comparefunction=cmptime)
-        for i in lt.iterator(interval): 
-            info= om.get(years,i)
-            info=info['value']['elements']
-            for j in info:
-                game=findGame(analyzer,j)
-                time= time= float(game['Time_2'].strip() or 0)
-                if time != 0 or time != '':
-                    om.put(times,time,game)
-        return times
+        tiempos = om.newMap(omaptype='BST',comparefunction=cmp_Req6)
+        for i in lt.iterator(ranges): 
+            information = om.get(dates,i)
+            information = information['value']['elements']
+            for j in information:
+                game = SearchGame(analyzer,j)
+                tiempo = tiempo = float(game['Time_2'].strip() or 0)
+                if tiempo != 0 or tiempo != '':
+                    om.put(tiempos,tiempo,game)
+        return tiempos
 
     elif propiedad == 'time_avg':
-        times=om.newMap(omaptype='BST',comparefunction=cmptime)
-        for i in lt.iterator(interval): 
-            info= om.get(years,i)
-            info=info['value']['elements']
-            for j in info:
-                game=findGame(analyzer,j)
-                add= promTime(game)
-                om.put(times,add,game)
-        return times
+        tiempos = om.newMap(omaptype='BST',comparefunction=cmp_Req6)
+        for i in lt.iterator(ranges): 
+            information = om.get(dates,i)
+            information = information['value']['elements']
+            for j in information:
+                game = SearchGame(analyzer,j)
+                avg = PromediosTime(game)
+                om.put(tiempos,avg,game)
+        return tiempos
 
     elif propiedad == 'num_runs':
-        tries= om.newMap(omaptype='BST',comparefunction=cmptime)
-        for i in lt.iterator(interval): 
-            info= om.get(years,i)
-            info=info['value']['elements']
-            for j in info:
-                add=int(j['Num_Runs'])
-                om.put(tries,add,j)
-        return tries
+        runs = om.newMap(omaptype='BST',comparefunction=cmp_Req6)
+        for i in lt.iterator(ranges): 
+            information = om.get(dates,i)
+            information = information['value']['elements']
+            for j in information:
+                runs_avg = int(j['Num_Runs'])
+                om.put(runs,runs_avg,j)
+        return runs
 
     else:
         return None
 
-
-def Req6_histograma_por_rango(analyzer, max_date, min_date, propiedad, N, x):
-    map = rgstrInYears(analyzer,max_date,min_date,propiedad)
-    if map != None:
-        ran= (om.maxKey(map))-(om.minKey(map))
-        interval= round(ran/N,2)
+def histogram(analyzer,max_date,min_date,propiedad,n,x):
+    ADT = YearsHistogram(analyzer,max_date,min_date,propiedad)
+    if ADT != None:
+        ranges = (om.maxKey(ADT))-(om.minKey(ADT))
+        interval= round(ranges/n,2)
         
-        hist={}
+        histograms = {}
 
         i=1
-        menor= round(om.minKey(map),2)
-        mayor=0
-        while i <= N:
-            if i!=N:
-                mayor=menor+interval
-                mayor=round(mayor,2)
-                bins= str(menor)+'-'+str(mayor)
-                menor=mayor
-                hist[bins]=0
+        low = round(om.minKey(ADT),2)
+        maxim =0
+        while i <= n:
+            if i!=n:
+                maxim=low+interval
+                maxim = round(maxim,2)
+                bins = str(low)+'-'+str(maxim)
+                low = maxim
+                histograms[bins] = 0
             else:
-                mayor=round(om.maxKey(map),2)
-                bins= str(menor)+'-'+str(mayor)
-                hist[bins]=0
+                maxim = round(om.maxKey(ADT),2)
+                bins = str(low)+'-'+str(maxim)
+                histograms[bins] = 0
             i+=1
 
-        keys= om.keySet(map) 
-        hist=count(hist,keys)  
-        hist=countLvlmark(hist,x) 
+        keys = om.keySet(ADT) 
+        histograms =counters(histograms,keys)  
+        histograms =counterslevelmarks(histograms,x) 
 
-        minim=round(om.minKey(map),2)
-        maxim=round(om.maxKey(map),2)
+        minim =round(om.minKey(ADT),2)
+        maximo =round(om.maxKey(ADT),2)
 
-        return hist,om.size(map),minim,maxim
+        return histograms,om.size(ADT),minim,maximo
 
     else:
         return None
 
-def count(hist,keys):
+def counters(histograms,keys):
 
-    for k in lt.iterator(keys):
-        k=round(k,2)
+    for x in lt.iterator(keys):
+        x =round(x,2)
         i=0
-        found=True
-        intervals=sorted(hist)
-        while (i <= len(intervals)) and found:
-            comp= intervals[i].split('-')
-            if k >= float(comp[0]) or k < float(comp[1]):
-                hist[intervals[i]]+=1
-                found=False
+        encontrado = True
+        ranges = sorted(histograms)
+        while (i <= len(ranges)) and encontrado:
+            comparation = ranges[i].split('-')
+            if x >= float(comparation[0]) or x < float(comparation[1]):
+                histograms[ranges[i]]+=1
+                encontrado=False
             i+=1
-    return hist
+    return histograms
 
-def countLvlmark(hist,x):
-    ans={}
+def counterslevelmarks(histograms,x):
+    answer = {}
 
-    for i in sorted(hist):
-        lvl= hist[i]//x
-        ans[i]=(hist[i],lvl)
-    return ans
-    
+    for i in sorted(histograms):
+        level = histograms[i]//x
+        answer[i]=(histograms[i],level)
+    return answer
 
 #=^..^=   [Requerimiento 7]  =^..^=    =^..^=    =^..^=    =^..^=
+def retransmi(analyzer,games,pt):
 
-def findGame(catalog,game):
+    retransTree= om.newMap(omaptype='BST',
+                        comparefunction=cmp_Req7)
+    notMisc=0
+    for game in games:
+        x= SearchGame(analyzer,game)
+        
+        if x['Misc'] == 'False':
 
-    fnd=None
+            notMisc+=1
+
+            Antiguedad = Antiq(game)
+            popular = popularies(game)
+            PromTime= PromediosTime(x)
+
+            rest = (popular*PromTime)/Antiguedad
+            rest = round(rest,2)
+
+            runs = int(game['Total_Runs'])
+
+            mercado = runs/pt  
+            mercado = round(mercado,2)
+
+            streamMercado = mercado*rest
+            streamMercado = round(streamMercado,2)
+
+
+            om.put(retransTree,streamMercado,game)
+
+    return retransTree,notMisc
+
+def SearchGame(analyzer,game):
+
+    encontrado = None
     
-    for  Id in catalog['category_data']['elements']:
-        name=Id['Game_Id']
+    for  names in analyzer['category_data']['elements']:
+        name = names['Game_Id']
         if game['Name']== name:
-            fnd=Id
-    return fnd
+            encontado = names
+    return encontado
 
-def Antiquity(game):
-    releaseDate= str_2_date(game['Release_Date'])
+def Antiq(game):
+    release_Date = CompleteDate(game['Release_Date'])
     #year=str(releaseDate.year) 
-    releaseDate=int(releaseDate.year)
+    release_Date=int(release_Date.year)
 
-    if releaseDate >=2018:
-        return releaseDate - 2017
-    elif 1998 < releaseDate < 2018:
-        return ((-1/5)*releaseDate) + 404.6
+    if release_Date >=2018:
+        return release_Date - 2017
+    elif 1998 < release_Date < 2018:
+        return ((-1/5)*release_Date) + 404.6
     else:
         return 5
 
-def howpopular(game):
+def popularies(game):
     return log(int(game['Total_Runs']))
 
-def promTime (game):
+def PromediosTime (game):
 
-    times=lt.newList(datastructure='ARRAY_LIST')
+    tiempos = lt.newList(datastructure='ARRAY_LIST')
     i=0
     while i<=2:
        iterator='Time_'+str(i)
-       time= float(game[iterator].strip() or 0)
-       lt.addLast(times,time)
+       tiempo = float(game[iterator].strip() or 0)
+       lt.addLast(tiempos,tiempo)
        i+=1
-    times= times['elements']
+    tiempos = tiempos['elements']
 
-    return mean(times)
+    return mean(tiempos)
 
-def R7_TOPN (analyzer,platform,N):
-    exist=mp.contains(analyzer['Req7_TopNVideogames'],platform)
+def topN(analyzer,platform,N):
+    exist_map = mp.contains(analyzer['Req7_TopNVideogames'],platform)
 
-    if exist:
+    if exist_map:
         entry= mp.get(analyzer['Req7_TopNVideogames'],platform)
-        plat=me.getValue(entry)
-        size= lt.size(plat)
-        pt= totalTransmission(plat)
+        plat =me.getValue(entry)
+        size = lt.size(plat)
+        pt = total(plat)
 
-        rev,notMisc= revenue(analyzer,plat['elements'],pt)
+        rest,notMisc= retransmi(analyzer,plat['elements'],pt)
 
-        top= lt.newList(datastructure='ARRAY_LIST')
+        tops = lt.newList(datastructure='ARRAY_LIST')
 
         i=1
         while i <= N:
-            mayor= om.maxKey(rev)
-            mayor= om.get(rev,mayor)
-            lt.addLast(top,mayor)
-            om.deleteMax(rev)
+            maxim = om.maxKey(rest)
+            maxim = om.get(rest,maxim)
+            lt.addLast(tops,maxim)
+            om.deleteMax(rest)
 
             i+=1
         
-        return top,size,notMisc
+        return tops,size,notMisc
 
     else:
         return None
 
-def totalTransmission(games):
+def total(games):
     pt=0
     for game in games['elements']:
         pt += int(game['Total_Runs'])
     return pt
 
-def revenue(catalog,games,pt):
-
-    rvTree= om.newMap(omaptype='BST',
-                        comparefunction=cmpRevenue)
-    notMc=0
-    for game in games:
-        x= findGame(catalog,game)
-        
-        if x['Misc']== 'False':
-
-            notMc+=1
-
-            Ant= Antiquity(game)
-            popular= howpopular(game)
-            avgTime= promTime(x)
-
-            rev= (popular*avgTime)/Ant
-            rev= round(rev,2)
-
-            gt= int(game['Total_Runs'])
-
-            marketShare= gt/pt  
-            marketShare= round(marketShare,2)
-
-            streamRevenue= marketShare*rev
-            streamRevenue= round(streamRevenue,2)
-
-
-            om.put(rvTree,streamRevenue,game)
-
-    return rvTree,notMc
 # ___________________________________________________
 # Funciones utilizadas para comparar elementos dentro de una lista
 # ___________________________________________________
@@ -789,8 +669,20 @@ def cmp_Req5(record1, record2):
                 Value = False
     return Value
 
-#def cmp_Req6(record1, record2):
-#def cmp_Req7(record1, record2):
+def cmp_Req6(record1, record2):
+    if record1==record2:
+        return 0
+    elif record1 > record2:
+        return 1
+    else:
+        return-1
+def cmp_Req7(record1, record2):
+    if record1==record2:
+        return 0
+    elif record1 > record2:
+        return 1
+    else:
+        return-1
 
 # ___________________________________________________
 # Funciones Adicionales
@@ -816,58 +708,16 @@ def FirstandLast(lista):
     sizelista = lt.size(lista)
     if sizelista <=6:
         return lista
-    first_3 = subList(lista,1, 3)
-    last_3 = subList(lista,sizelista-2, 3)
-    FinalList = lt.newList("ARRAY_LIST")
-    for i in lt.iterator(first_3):
-        lt.addLast(FinalList, i) 
-    for a in lt.iterator(last_3):
-        lt.addLast(FinalList, a)
-    return FinalList
-def findGame(catalog,game):
-
-    found=None
-    
-    for  Id in catalog['category_data']['elements']:
-        name=Id['Game_Id']
-        if game['Name']== name:
-            found=Id
-    return found
-
-
-def cmptime(time1,time2):
-    if time1==time2:
-        return 0
-    elif time1 > time2:
-        return 1
     else:
-        return-1
+        first_3 = subList(lista,1, 3)
+        last_3 = subList(lista,sizelista-2, 3)
+        FinalList = lt.newList("ARRAY_LIST")
+        for i in lt.iterator(first_3):
+            lt.addLast(FinalList, i) 
+        for a in lt.iterator(last_3):
+            lt.addLast(FinalList, a)
+        return FinalList
 
-def str_2_date(string): 
-    if int(string[:2]) <= 22:
-        año = "20" + string[:2]
-        fecha = año + string[2:]
-    elif int(string[:2]) > 22: 
-        año = "19" + string[:2]
-        fecha = año + string[2:]
-
-    return dt.strptime(fecha, "%Y-%m-%d").date()
-
-def cmpRevenue (revenue1,revenue2):
-    if revenue1==revenue2:
-        return 0
-    elif revenue1 > revenue2:
-        return 1
-    else:
-        return-1
-
-def cmptime(time1,time2):
-    if time1==time2:
-        return 0
-    elif time1 > time2:
-        return 1
-    else:
-        return-1
 # ___________________________________________________
 # Funciones Lab 9
 # ___________________________________________________
@@ -884,4 +734,3 @@ def indexSize(analyzer):
     Número de elementos en el indice
     """
     return treeSize(analyzer)
-
